@@ -642,6 +642,9 @@ class Normalizer(object):
                     # then add the taxonomy if relevant
                     if self.taxonomy:
                         log['taxonomy'] = self.taxonomy
+                    # add the pattern name to more easily identify the type of log line
+                    pattern_name = self.patterns[self.tags_to_pattern[tag]].name
+                    log['__pattern_name'] = pattern_name
                     # and finally, apply the final callbacks
                     for cb in self.finalCallbacks:
                         try:
