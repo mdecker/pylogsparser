@@ -103,7 +103,7 @@
             <description>
                 <localized_desc language="en">path to processed item</localized_desc>
             </description>
-            <regexp>\S+</regexp>
+            <regexp>[^\[]+(?!\[)</regexp>
         </tagType>
         <tagType name="TSM_ITEMSTATUS" type="basestring">
             <description>
@@ -183,7 +183,7 @@ log['minutes'] = int(value)
             <description>
                 <localized_desc language="en">single dateline, followed by a "Executing scheduled command now."-Line (not checked here)</localized_desc>
             </description>
-            <text>__DATE__</text>
+            <text>__DATE__$</text>
             <tags>
                 <tag name="__date" tagType="TSM_DATETIME">
                     <description>
@@ -200,6 +200,28 @@ log['minutes'] = int(value)
                      <text>31.03.2017 10:16:54</text>
                      <expectedTags>
                           <expectedTag name="date">2017-03-31 10:16:54</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-998">
+            <description>
+                <localized_desc language="en">"Executing scheduled command now."</localized_desc>
+            </description>
+            <text>Executing scheduled command now__REST__</text>
+            <tags>
+                <tag name="rest" tagType="anything">
+                    <description>
+                        <localized_desc language="en">only there to provide anythin to match at all</localized_desc>
+                    </description>
+                    <substitute>__REST__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>Executing scheduled command now.</text>
+                     <expectedTags>
+                          <expectedTag name="rest">.</expectedTag>
                      </expectedTags>
                 </example>
             </examples>
@@ -611,6 +633,16 @@ log['minutes'] = int(value)
                           <expectedTag name="itemtype">Normal File</expectedTag>
                           <expectedTag name="itemsize">33.709</expectedTag>
                           <expectedTag name="itempath">\\host123\c$\opsi.org\log\opsi_loginblocker.log.3</expectedTag>
+                          <expectedTag name="itemstatus">Sent</expectedTag>
+                     </expectedTags>
+                </example>
+                <example>
+                     <text>31.03.2017 10:52:50 Normal File-->               491 \\host123\c$\Program Files\Tivoli\TSM\baclient\tsmstats.ini [Sent]</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:52:50</expectedTag>
+                          <expectedTag name="itemtype">Normal File</expectedTag>
+                          <expectedTag name="itemsize">491</expectedTag>
+                          <expectedTag name="itempath">\\host123\c$\Program Files\Tivoli\TSM\baclient\tsmstats.ini</expectedTag>
                           <expectedTag name="itemstatus">Sent</expectedTag>
                      </expectedTags>
                 </example>
@@ -1127,6 +1159,88 @@ log['minutes'] = int(value)
                      <expectedTags>
                           <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
                           <expectedTag name="schedule">DESKTOP_1000_DAILY</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-024">
+            <description>
+                <localized_desc language="en">summary: subfile reduction ratio</localized_desc>
+            </description>
+            <text>__DATE__ Subfile objects reduced by:\s+__REDUCTIONRATIO__</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="reductionratio" tagType="TSM_RATIO_PERCENT">
+                    <description>
+                        <localized_desc language="en">total reduction ratio</localized_desc>
+                    </description>
+                    <substitute>__REDUCTIONRATIO__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Subfile objects reduced by:                   0%</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="reductionratio">0%</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-025">
+            <description>
+                <localized_desc language="en">log pruning started</localized_desc>
+            </description>
+            <text>__DATE__ ANS1483I Schedule log pruning started</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 ANS1483I Schedule log pruning started.</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-026">
+            <description>
+                <localized_desc language="en">log prunig finished successfully</localized_desc>
+            </description>
+            <text>__DATE__ ANS1484I Schedule log pruning finished successfully</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 ANS1484I Schedule log pruning finished successfully.</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
                      </expectedTags>
                 </example>
             </examples>
