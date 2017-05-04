@@ -147,6 +147,24 @@
             </description>
             <regexp>(Network|Aggregate)</regexp>
         </tagType>
+        <tagType name="TSM_RATIO_PERCENT" type="basestring">
+            <description>
+                <localized_desc language="en">ratio expressed in percent with up to two decimal places</localized_desc>
+            </description>
+            <regexp>\d+((,|\.)\d{1,2})?%</regexp>
+        </tagType>
+        <tagType name="TSM_ELAPSED_TIME" type="basestring">
+            <description>
+                <localized_desc language="en">elapsed time in H:M:S format with potentially unlimited hours</localized_desc>
+            </description>
+            <regexp>\d{2,}:\d{2}:\d{2}</regexp>
+        </tagType>
+        <tagType name="TSM_SUMMARYMARKER" type="basestring">
+            <description>
+                <localized_desc language="en">marks beginning or end of backup summary</localized_desc>
+            </description>
+            <regexp>(BEGIN|END)</regexp>
+        </tagType>
     </tagTypes>
     <callbacks>
         <callback name="dd.MM.YYYY hh:mm:ss">
@@ -411,9 +429,9 @@ log['minutes'] = int(value)
         </pattern>
         <pattern name="tsm-007">
             <description>
-                <localized_desc language="en">begin backup</localized_desc>
+                <localized_desc language="en">begin or end ofbackup</localized_desc>
             </description>
-            <text>__DATE__ --- SCHEDULEREC OBJECT BEGIN __SCHEDNAME__ __SCHEDULESTARTTIME__</text>
+            <text>__DATE__ --- SCHEDULEREC OBJECT __TYPE__ __SCHEDNAME__ __SCHEDULESTARTTIME__</text>
             <tags>
                 <tag name="__date" tagType="TSM_DATETIME">
                     <description>
@@ -423,6 +441,12 @@ log['minutes'] = int(value)
                     <callbacks>
                         <callback>dd.MM.YYYY hh:mm:ss</callback>
                     </callbacks>
+                </tag>
+                <tag name="type" tagType="TSM_SUMMARYMARKER">
+                    <description>
+                        <localized_desc language="en">beginning or end of run</localized_desc>
+                    </description>
+                    <substitute>__TYPE__</substitute>
                 </tag>
                 <tag name="schedule" tagType="TSM_SCHEDULENAME">
                     <description>
@@ -442,6 +466,16 @@ log['minutes'] = int(value)
                      <text>31.03.2017 10:36:58 --- SCHEDULEREC OBJECT BEGIN DESKTOP_1000_DAILY 31.03.2017 10:00:00</text>
                      <expectedTags>
                           <expectedTag name="date">2017-03-31 10:36:58</expectedTag>
+                          <expectedTag name="type">BEGIN</expectedTag>
+                          <expectedTag name="schedule">DESKTOP_1000_DAILY</expectedTag>
+                          <expectedTag name="schedulestarttime">31.03.2017 10:00:00</expectedTag>
+                     </expectedTags>
+                </example>
+                <example>
+                     <text>31.03.2017 10:53:00 --- SCHEDULEREC OBJECT END DESKTOP_1000_DAILY 31.03.2017 10:00:00</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="type">END</expectedTag>
                           <expectedTag name="schedule">DESKTOP_1000_DAILY</expectedTag>
                           <expectedTag name="schedulestarttime">31.03.2017 10:00:00</expectedTag>
                      </expectedTags>
@@ -623,9 +657,9 @@ log['minutes'] = int(value)
         </pattern>
         <pattern name="tsm-012">
             <description>
-                <localized_desc language="en">begin of backup summary</localized_desc>
+                <localized_desc language="en">begin or end of backup summary</localized_desc>
             </description>
-            <text>__DATE__ --- SCHEDULEREC STATUS BEGIN</text>
+            <text>__DATE__ --- SCHEDULEREC STATUS __TYPE__</text>
             <tags>
                 <tag name="__date" tagType="TSM_DATETIME">
                     <description>
@@ -636,12 +670,26 @@ log['minutes'] = int(value)
                         <callback>dd.MM.YYYY hh:mm:ss</callback>
                     </callbacks>
                 </tag>
+                <tag name="type" tagType="TSM_SUMMARYMARKER">
+                    <description>
+                        <localized_desc language="en">beginning or end of summary</localized_desc>
+                    </description>
+                    <substitute>__TYPE__</substitute>
+                </tag>
             </tags>
             <examples>
                 <example>
                      <text>31.03.2017 10:53:00 --- SCHEDULEREC STATUS BEGIN</text>
                      <expectedTags>
                           <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="type">BEGIN</expectedTag>
+                     </expectedTags>
+                </example>
+                <example>
+                     <text>31.03.2017 10:53:00 --- SCHEDULEREC STATUS END</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="type">END</expectedTag>
                      </expectedTags>
                 </example>
             </examples>
@@ -887,6 +935,198 @@ log['minutes'] = int(value)
                           <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
                           <expectedTag name="transfercategory">Aggregate</expectedTag>
                           <expectedTag name="size">17,10 KB/sec</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-018">
+            <description>
+                <localized_desc language="en">summary: compression ratio</localized_desc>
+            </description>
+            <text>__DATE__ Objects compressed by:\s+__COMPRESSRATIO__</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="compressratio" tagType="TSM_RATIO_PERCENT">
+                    <description>
+                        <localized_desc language="en">compression ratio</localized_desc>
+                    </description>
+                    <substitute>__COMPRESSRATIO__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Objects compressed by:                        0%</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="compressratio">0%</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-019">
+            <description>
+                <localized_desc language="en">summary: data reduction ratio</localized_desc>
+            </description>
+            <text>__DATE__ Total data reduction ratio:\s+__REDUCTIONRATIO__</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="reductionratio" tagType="TSM_RATIO_PERCENT">
+                    <description>
+                        <localized_desc language="en">total reduction ratio</localized_desc>
+                    </description>
+                    <substitute>__REDUCTIONRATIO__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Total data reduction ratio:               99,99%</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="reductionratio">99,99%</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-020">
+            <description>
+                <localized_desc language="en">summary: elapsed processing time</localized_desc>
+            </description>
+            <text>__DATE__ Elapsed processing time:\s+__PROCESSINGTIME__</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="processingtime" tagType="TSM_ELAPSED_TIME">
+                    <description>
+                        <localized_desc language="en">elapsed processing time</localized_desc>
+                    </description>
+                    <substitute>__PROCESSINGTIME__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Elapsed processing time:               00:16:02</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="processingtime">00:16:02</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-021">
+            <description>
+                <localized_desc language="en">event completed successfully message</localized_desc>
+            </description>
+            <text>__DATE__ Scheduled event '__SCHEDNAME__' completed successfully</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="schedule" tagType="TSM_SCHEDULENAME">
+                    <description>
+                        <localized_desc language="en">name of backup schedule</localized_desc>
+                    </description>
+                    <substitute>__SCHEDNAME__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Scheduled event 'DESKTOP_1000_DAILY' completed successfully.</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="schedule">DESKTOP_1000_DAILY</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-022">
+            <description>
+                <localized_desc language="en">sending results to server</localized_desc>
+            </description>
+            <text>__DATE__ Sending results for scheduled event '__SCHEDNAME__'</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="schedule" tagType="TSM_SCHEDULENAME">
+                    <description>
+                        <localized_desc language="en">name of backup schedule</localized_desc>
+                    </description>
+                    <substitute>__SCHEDNAME__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Sending results for scheduled event 'DESKTOP_1000_DAILY'.</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="schedule">DESKTOP_1000_DAILY</expectedTag>
+                     </expectedTags>
+                </example>
+            </examples>
+        </pattern>
+        <pattern name="tsm-023">
+            <description>
+                <localized_desc language="en">sent results to server</localized_desc>
+            </description>
+            <text>__DATE__ Results sent to server for scheduled event '__SCHEDNAME__'</text>
+            <tags>
+                <tag name="__date" tagType="TSM_DATETIME">
+                    <description>
+                        <localized_desc language="en">event date</localized_desc>
+                    </description>
+                    <substitute>__DATE__</substitute>
+                    <callbacks>
+                        <callback>dd.MM.YYYY hh:mm:ss</callback>
+                    </callbacks>
+                </tag>
+                <tag name="schedule" tagType="TSM_SCHEDULENAME">
+                    <description>
+                        <localized_desc language="en">name of backup schedule</localized_desc>
+                    </description>
+                    <substitute>__SCHEDNAME__</substitute>
+                </tag>
+            </tags>
+            <examples>
+                <example>
+                     <text>31.03.2017 10:53:00 Results sent to server for scheduled event 'DESKTOP_1000_DAILY'.</text>
+                     <expectedTags>
+                          <expectedTag name="date">2017-03-31 10:53:00</expectedTag>
+                          <expectedTag name="schedule">DESKTOP_1000_DAILY</expectedTag>
                      </expectedTags>
                 </example>
             </examples>
